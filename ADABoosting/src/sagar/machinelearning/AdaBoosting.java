@@ -66,6 +66,9 @@ public class AdaBoosting {
 		try {
 			scanner = new Scanner(new File(inputFilePath));
 			int counter = 1;
+			ArrayList<Double> examples = new ArrayList<Double>();
+			ArrayList<Boolean> values = new ArrayList<Boolean>();
+			ArrayList<Double> probabilities = new ArrayList<Double>();
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				switch (counter++) {
@@ -75,31 +78,31 @@ public class AdaBoosting {
 					realAda.setEpsilon(Double.parseDouble(line.split(" ")[2]));
 					break;
 				case 2:
-					ArrayList<Double> examples = new ArrayList<Double>();
 					for (String example : line.split(" ")) {
 						examples.add(Double.parseDouble(example));
 					}
-					realAda.setX(examples);
 					break;
 				case 3:
-					ArrayList<Boolean> values = new ArrayList<Boolean>();
 					for (String value : line.split(" ")) {
 						values.add(Integer.parseInt(value) == 1 ? true : false);
 					}
-					realAda.setY(values);
 					break;
 				case 4:
-					ArrayList<Double> probabilities = new ArrayList<Double>();
 					for (String probability : line.split(" ")) {
 						probabilities.add(Double.parseDouble(probability));
 					}
-					realAda.setP(probabilities);
 					break;
 				default:
 					break;
 				}
 			}
-			binaryAda = new BinaryAda(realAda.getT(), realAda.getN(), realAda.getX(), realAda.getY(), realAda.getP());
+			ArrayList<ADAInput> inputs = new ArrayList<ADAInput>();
+			for (int exampleCounter = 0; exampleCounter < examples.size(); exampleCounter++) {
+				inputs.add(new ADAInput(examples.get(exampleCounter), values.get(exampleCounter), probabilities
+					.get(exampleCounter)));
+			}
+			realAda.setInputs(inputs);
+			binaryAda = new BinaryAda(realAda.getT(), realAda.getN(), realAda.getInputs());
 		} catch (FileNotFoundException e) {
 			System.out.println("#File not found. Please retry.");
 			readFile();
