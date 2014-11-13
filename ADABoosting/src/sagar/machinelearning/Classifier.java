@@ -7,6 +7,7 @@ public class Classifier {
 
 	private double wrongPreNormalization;
 	private double rightPreNormalization;
+	private double normalizationFactor;
 
 	public Classifier(double classifierValue) {
 		super();
@@ -54,6 +55,14 @@ public class Classifier {
 
 	public void setRightPreNormalization(double rightPreNormalization) {
 		this.rightPreNormalization = rightPreNormalization;
+	}
+
+	public double getNormalizationFactor() {
+		return normalizationFactor;
+	}
+
+	public void setNormalizationFactor(double normalizationFactor) {
+		this.normalizationFactor = normalizationFactor;
 	}
 
 }

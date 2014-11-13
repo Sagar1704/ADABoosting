@@ -43,7 +43,7 @@ public class AdaBoosting {
 				ada.readFile();
 				break;
 			case 2:
-				ada.binaryAda.boost();
+				System.out.println(ada.binaryAda.boost());
 				break;
 			case 3:
 				ada.realAda.boost();

@@ -13,9 +13,11 @@ public class ADAInput {
 		this.example = example;
 		this.value = value;
 		this.probability = probability;
+		this.erroneous = false;
 	}
 
 	public ADAInput() {
+		this.erroneous = false;
 	}
 
 	public double getExample() {

@@ -14,7 +14,9 @@ public class RealAda extends BinaryAda {
 	public RealAda() {
 	}
 
-	public void boost() {
+	public StringBuilder boost() {
+		StringBuilder sb = new StringBuilder();
 
+		return sb;
 	}
 }
