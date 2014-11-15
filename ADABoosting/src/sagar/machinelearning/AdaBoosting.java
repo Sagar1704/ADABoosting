@@ -5,16 +5,19 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import sagar.machinelearning.exceptions.FileNotScannedException;
+
 public class AdaBoosting {
 	private Scanner scanner;
 	private String inputFilePath;
 	private BinaryAda binaryAda;
 	private RealAda realAda;
+	private static boolean fileScanned = false;
 
 	public AdaBoosting() {
 		this.inputFilePath = "";
-		this.binaryAda = new BinaryAda();
-		this.realAda = new RealAda();
+		// this.binaryAda = new BinaryAda();
+		// this.realAda = new RealAda();
 	}
 
 	public String getInputFilePath() {
@@ -30,9 +33,9 @@ public class AdaBoosting {
 	}
 
 	public static void main(String[] args) {
+		System.out.println("Deshpande Sagar");
 		System.out.println("#***************************************");
-		System.out.println("#Ada Boosting");
-		System.out.println("#***************************************");
+		System.out.println("#\tAda Boosting");
 
 		AdaBoosting ada = new AdaBoosting();
 		int choice = 0;
@@ -43,7 +46,7 @@ public class AdaBoosting {
 				ada.readFile();
 				break;
 			case 2:
-				System.out.println(ada.binaryAda.boost());
+				System.out.println(ada.binaryAda.boost().toString());
 				break;
 			case 3:
 				ada.realAda.boost();
@@ -60,10 +63,11 @@ public class AdaBoosting {
 
 	public void readFile() {
 		System.out.print("#Enter input file path::");
-		scanner = new Scanner(System.in);
-		inputFilePath = scanner.nextLine();
 
 		try {
+			scanner = new Scanner(System.in);
+			inputFilePath = scanner.nextLine();
+
 			scanner = new Scanner(new File(inputFilePath));
 			int counter = 1;
 			ArrayList<Double> examples = new ArrayList<Double>();
@@ -73,9 +77,11 @@ public class AdaBoosting {
 				String line = scanner.nextLine();
 				switch (counter++) {
 				case 1:
+					realAda = new RealAda();
 					realAda.setT(Integer.parseInt(line.split(" ")[0]));
 					realAda.setN(Integer.parseInt(line.split(" ")[1]));
 					realAda.setEpsilon(Double.parseDouble(line.split(" ")[2]));
+					System.out.println("#File Scanned successfully.");
 					break;
 				case 2:
 					for (String example : line.split(" ")) {
@@ -107,17 +113,20 @@ public class AdaBoosting {
 			System.out.println("#File not found. Please retry.");
 			readFile();
 		} finally {
-			closeScanner();
+			// closeScanner();
 		}
 	}
 
 	public void closeScanner() {
 		if (scanner != null) {
 			scanner.close();
+			scanner = null;
 		}
 	}
 
 	private int displayMenu() {
+		System.out.println("#***************************************");
+		System.out.println("#Display Menu");
 		System.out.println("#***************************************");
 		System.out.println("#(1) Enter input file");
 		System.out.println("#(2) Binary Ada Boosting");
@@ -128,11 +137,22 @@ public class AdaBoosting {
 		int choice = -1;
 		try {
 			choice = Integer.parseInt(scanner.next());
+
+			if (choice == 1 || choice == 4) {
+				fileScanned = true;
+			} else {
+				if (!fileScanned) {
+					throw new FileNotScannedException("#Please scan the file first");
+				}
+			}
 		} catch (NumberFormatException e) {
 			System.out.println("#Please enter a numeric choice");
 			return displayMenu();
+		} catch (FileNotScannedException e) {
+			System.out.println(e.getMessage());
+			return displayMenu();
 		} finally {
-			closeScanner();
+			// closeScanner();
 		}
 
 		return choice;
