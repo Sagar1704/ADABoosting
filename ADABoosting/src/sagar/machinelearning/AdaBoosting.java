@@ -7,6 +7,12 @@ import java.util.Scanner;
 
 import sagar.machinelearning.exceptions.FileNotScannedException;
 
+/**
+ * This program is to illustrate the working of Adaptive Boosting algorithm in machine learning
+ * 
+ * @author Sagar
+ * 
+ */
 public class AdaBoosting {
 	private Scanner scanner;
 	private String inputFilePath;
@@ -16,8 +22,6 @@ public class AdaBoosting {
 
 	public AdaBoosting() {
 		this.inputFilePath = "";
-		// this.binaryAda = new BinaryAda();
-		// this.realAda = new RealAda();
 	}
 
 	public String getInputFilePath() {
@@ -40,6 +44,7 @@ public class AdaBoosting {
 		AdaBoosting ada = new AdaBoosting();
 		int choice = 0;
 		do {
+			// This is a menu driven program
 			choice = ada.displayMenu();
 			switch (choice) {
 			case 1:
@@ -49,7 +54,7 @@ public class AdaBoosting {
 				System.out.println(ada.binaryAda.boost().toString());
 				break;
 			case 3:
-				ada.realAda.boost();
+				System.out.println(ada.realAda.boost().toString());
 				break;
 			case 4:
 				System.exit(0);
@@ -61,6 +66,16 @@ public class AdaBoosting {
 
 	}
 
+	/**
+	 * Reads the input file
+	 * Gets the following data from the input file:
+	 * 1. Number of iterations
+	 * 2. Number of examples
+	 * 3. Smoothing value
+	 * 4. Learning examples
+	 * 5. Example classifications
+	 * 6. Example's initial probabilities
+	 */
 	public void readFile() {
 		System.out.print("#Enter input file path::");
 
@@ -112,15 +127,6 @@ public class AdaBoosting {
 		} catch (FileNotFoundException e) {
 			System.out.println("#File not found. Please retry.");
 			readFile();
-		} finally {
-			// closeScanner();
-		}
-	}
-
-	public void closeScanner() {
-		if (scanner != null) {
-			scanner.close();
-			scanner = null;
 		}
 	}
 

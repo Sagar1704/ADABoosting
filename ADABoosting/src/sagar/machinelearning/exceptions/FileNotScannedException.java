@@ -1,5 +1,11 @@
 package sagar.machinelearning.exceptions;
 
+/**
+ * This exception is thrown when the algorithm is invoked without scanning the input file
+ * 
+ * @author Sagar
+ * 
+ */
 public class FileNotScannedException extends Exception {
 
 	/**

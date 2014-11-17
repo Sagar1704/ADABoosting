@@ -5,14 +5,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 
+/**
+ * @author Sagar
+ *
+ */
 public class BinaryAda {
-	private int T;
-	private int n;
-	private ArrayList<ADAInput> inputs;
+	protected int T;
+	protected int n;
+	protected ArrayList<ADAInput> inputs;
 
-	private ArrayList<Classifier> classifiers;
-	private String boostedClassifier;
-	private double bound;
+	protected ArrayList<Classifier> classifiers;
+	protected String boostedClassifier;
+	protected double bound;
 
 	public ArrayList<ADAInput> getInputs() {
 		return inputs;
@@ -47,39 +51,42 @@ public class BinaryAda {
 
 	public StringBuilder boost() {
 		StringBuilder sb = new StringBuilder();
-		for (int iterationCounter = 0; iterationCounter < T; iterationCounter++) {// 1. Select a weak
-																					// classifier
+		for (int iterationCounter = 0; iterationCounter < T; iterationCounter++) {
 			setClassiferErrors();
-			Classifier classifier = classifiers.get(0);
+			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
 			sb.append("Iteration" + (iterationCounter + 1));
 			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
 				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
-			
-			setErroneous(classifier);
+
+			setErroneous(classifier);// 2. Find errors in the classifier (epsilon)t
 			sb.append("\n\tThe error of h" + (iterationCounter + 1) + ": " + classifier.getError());
 
-			classifier.setWeight(calculateWeight(classifier.getError()));
+			classifier.setWeight(calculateWeight(classifier.getError()));// 3. Calculate goodness weight at
 			sb.append("\n\tThe weight of h" + (iterationCounter + 1) + ": " + classifier.getWeight());
 
+			// Calculate Pre-Normalization factors qi(Wrong) and qi(Right)
 			classifier.setWrongPreNormalization(calculatePreNormalizationFactor(classifier.getWeight()));
 			classifier.setRightPreNormalization(calculatePreNormalizationFactor(-1 * classifier.getWeight()));
 
-			calculatePreNormalizationProbabilities(classifier);
+			calculatePreNormalizationProbabilities(classifier);// Calculate Pre-Normalization probabilities pi.qi
 
-			classifier.setNormalizationFactor(calculateNormalizationFactor());
+			classifier.setNormalizationFactor(calculateNormalizationFactor());// 4. Calculate Normalization factor Zt
 			sb.append("\n\tThe probabilities normalization factor: " + classifier.getNormalizationFactor());
 
 			sb.append("\n\tThe probabilities after normalization: ");
-			calculateNewProbabilities(classifier, sb);
+			calculateNewProbabilities(classifier, sb);// 5. Calculate new probabilities (pi.qi)/Zt
 
-			calculateBoostedClassifier(classifier);
+			calculateBoostedClassifier(classifier);// 6. Formulate the new boosted classifier ft
 			sb.append("\n\tThe boosted classifier: ft = "
 				+ boostedClassifier.substring(0, boostedClassifier.length() - 2));
 
-			sb.append("\n\tThe error of the boosted classifier: " + calculateBoostedClassifierError(classifier));
-			sb.append("\n\tThe bound on E" + (iterationCounter + 1) + ": " + calculateBound(classifier));
+			// 7. The error of the boosted classifier Et
+			sb.append("\n\tThe error of the boosted classifier: " + calculateBoostedClassifierError());
+			sb.append("\n\tThe bound on E" + (iterationCounter + 1) + ": " + calculateBound(classifier));// 8. Calculate
+																											// the bound
+																											// on error
 
-			classifiers.add(0, classifier);
+			classifiers.add(0, classifier);// Replace the classifier with new error
 		}
 
 		return sb;
@@ -90,7 +97,7 @@ public class BinaryAda {
 	 * 
 	 * @param classifier
 	 */
-	private void setErroneous(Classifier classifier) {
+	protected void setErroneous(Classifier classifier) {
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 
@@ -122,20 +129,19 @@ public class BinaryAda {
 	 * @param classifier
 	 * @return
 	 */
-	private double calculateBoostedClassifierError(Classifier classifier) {
+	private double calculateBoostedClassifierError() {
 		double boostedClassifierError = 0;
 		for (ADAInput input : inputs) {
 			String booster = boostedClassifier;
-			double boostedWeight = 0.0f;
 			while (booster.contains("<")) {
 				double weight = Double.parseDouble(booster.substring(0, booster.indexOf("I")).trim());
 				double threshold = Double.parseDouble(booster.substring(booster.indexOf("<") + 1, booster.indexOf(")"))
 					.trim());
-				boostedWeight += weight * classify(input, threshold);
+				input.setBoostedWeight(input.getBoostedWeight() + (weight * classify(input, threshold)));
 
 				booster = booster.substring(booster.indexOf(")") + 4);
 			}
-			if (!xnor(boostedWeight > 0, input.isPositive())) {
+			if (!xnor(input.getBoostedWeight() > 0, input.isPositive())) {
 				boostedClassifierError += 1;
 			}
 		}
@@ -164,7 +170,7 @@ public class BinaryAda {
 	 * 
 	 * @param classifier
 	 */
-	private void calculateBoostedClassifier(Classifier classifier) {
+	protected void calculateBoostedClassifier(Classifier classifier) {
 		boostedClassifier += classifier.getWeight() + " I(x < " + classifier.getClassifierValue() + ") + ";
 	}
 
@@ -174,7 +180,7 @@ public class BinaryAda {
 	 * @param classifier
 	 * @param sb
 	 */
-	private void calculateNewProbabilities(Classifier classifier, StringBuilder sb) {
+	protected void calculateNewProbabilities(Classifier classifier, StringBuilder sb) {
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 			input.setProbability(input.getPreNormalizedProbability() / classifier.getNormalizationFactor());
@@ -187,7 +193,7 @@ public class BinaryAda {
 	 * 
 	 * @return sum of all pre-normalized probabilities
 	 */
-	private double calculateNormalizationFactor() {
+	protected double calculateNormalizationFactor() {
 		double z = 0.0f;
 		for (ADAInput input : inputs) {
 			z += input.getPreNormalizedProbability();
@@ -196,7 +202,7 @@ public class BinaryAda {
 	}
 
 	/**
-	 * Calculate q(wrong) and q(right)
+	 * Calculate pi.qi
 	 * 
 	 * @param classifier
 	 */
@@ -213,6 +219,7 @@ public class BinaryAda {
 
 	/**
 	 * Calculate the pre-normalization factor based on the classification and weight
+	 * (qi(wrong) and qi(right))
 	 * 
 	 * @param weight
 	 * @return e raised to weight
@@ -255,7 +262,7 @@ public class BinaryAda {
 		return error;
 	}
 
-	private void setClassiferErrors() {
+	public void setClassiferErrors() {
 		for (Iterator<Classifier> iterator = classifiers.iterator(); iterator.hasNext();) {
 			Classifier classifier = (Classifier) iterator.next();
 			classifier.setError(calculateError(classifier));
