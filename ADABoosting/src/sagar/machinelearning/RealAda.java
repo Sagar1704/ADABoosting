@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 /**
  * @author Sagar
- *
+ * 
  */
 public class RealAda extends BinaryAda {
 	private double epsilon;
@@ -61,12 +61,26 @@ public class RealAda extends BinaryAda {
 
 			classifier.setNormalizationFactor(calculateNormalizationFactor());// 4. Calculate Normalization factor Zt
 			sb.append("\n\tThe probabilities normalization factor: " + classifier.getNormalizationFactor());
-			
+
 			sb.append("\n\tThe probabilities after normalization: ");
 			calculateNewProbabilities(classifier, sb);// 5. Calculate new probabilities (pi.qi)/Zt
-			
+
 			calculateBoostedClassifier(classifier);
-			sb.append("The values ft(xi) for each one of the examples: ");
+			sb.append("\n\tThe values ft(xi) for each one of the examples: ");// 6. The values of ft(xi)
+			double boostedClassifierError = calculateBoostedClassifierError();
+
+			for (ADAInput input : inputs) {
+				sb.append("\t" + input.getBoostedWeight());
+			}
+
+			// 7. The error of the boosted classifier Et
+			sb.append("\n\tThe error of the boosted classifier: " + boostedClassifierError);
+
+			sb.append("\n\tThe bound on E" + (iterationCounter + 1) + ": " + calculateBound(classifier));// 8. Calculate
+																											// the bound
+																											// on error
+
+			classifiers.add(0, classifier);// Replace the classifier with new error
 		}
 		return sb;
 	}

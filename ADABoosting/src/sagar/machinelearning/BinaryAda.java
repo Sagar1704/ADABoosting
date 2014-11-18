@@ -118,7 +118,7 @@ public class BinaryAda {
 	 * @param classifier
 	 * @return the product of bounds
 	 */
-	private double calculateBound(Classifier classifier) {
+	protected double calculateBound(Classifier classifier) {
 		bound *= classifier.getNormalizationFactor();
 		return bound;
 	}
@@ -129,18 +129,10 @@ public class BinaryAda {
 	 * @param classifier
 	 * @return
 	 */
-	private double calculateBoostedClassifierError() {
+	protected double calculateBoostedClassifierError() {
 		double boostedClassifierError = 0;
 		for (ADAInput input : inputs) {
-			String booster = boostedClassifier;
-			while (booster.contains("<")) {
-				double weight = Double.parseDouble(booster.substring(0, booster.indexOf("I")).trim());
-				double threshold = Double.parseDouble(booster.substring(booster.indexOf("<") + 1, booster.indexOf(")"))
-					.trim());
-				input.setBoostedWeight(input.getBoostedWeight() + (weight * classify(input, threshold)));
-
-				booster = booster.substring(booster.indexOf(")") + 4);
-			}
+			calculateBoostedWeight(input);
 			if (!xnor(input.getBoostedWeight() > 0, input.isPositive())) {
 				boostedClassifierError += 1;
 			}
@@ -148,6 +140,19 @@ public class BinaryAda {
 		return boostedClassifierError / n;
 	}
 
+	private void calculateBoostedWeight(ADAInput input) {
+		String booster = boostedClassifier;
+		while (booster.contains("<")) {
+			double weight = Double.parseDouble(booster.substring(0, booster.indexOf("I")).trim());
+			double threshold = Double.parseDouble(booster.substring(booster.indexOf("<") + 1, booster.indexOf(")"))
+				.trim());
+			input.setBoostedWeight(input.getBoostedWeight() + (weight * classify(input, threshold)));
+
+			booster = booster.substring(booster.indexOf(")") + 4);
+		}
+
+	}
+	
 	private boolean xnor(boolean b, boolean inputValue) {
 		return b == inputValue;
 	}
