@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 /**
  * @author Sagar
- *
+ * 
  */
 public class BinaryAda {
 	protected int T;
@@ -46,7 +46,6 @@ public class BinaryAda {
 		this.boostedClassifier = "";
 		this.bound = 1;
 		this.inputs = new ArrayList<ADAInput>();
-		// setClassifiers();
 	}
 
 	public StringBuilder boost() {
@@ -86,7 +85,8 @@ public class BinaryAda {
 																											// the bound
 																											// on error
 
-			classifiers.add(0, classifier);// Replace the classifier with new error
+			classifiers.set(0, classifier);// Replace the classifier with new error
+
 		}
 
 		return sb;
@@ -152,7 +152,7 @@ public class BinaryAda {
 		}
 
 	}
-	
+
 	private boolean xnor(boolean b, boolean inputValue) {
 		return b == inputValue;
 	}
@@ -289,7 +289,7 @@ public class BinaryAda {
 	/**
 	 * Generate the weak classifiers from the inputs provided
 	 */
-	private void setClassifiers() {
+	protected void setClassifiers() {
 		classifiers = new ArrayList<Classifier>();
 		int elementCounter = 0;
 		int iterationCounter = 0;

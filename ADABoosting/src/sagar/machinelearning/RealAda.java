@@ -25,15 +25,17 @@ public class RealAda extends BinaryAda {
 	}
 
 	public RealAda() {
+		super();
 	}
 
 	public StringBuilder boost() {
 		StringBuilder sb = new StringBuilder();
+		setClassifiers();
 		for (int iterationCounter = 0; iterationCounter < T; iterationCounter++) {// 1. Select a weak classifier
 			setClassiferErrors();
 
 			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
-			sb.append("Iteration" + (iterationCounter + 1));
+			sb.append("\nIteration" + (iterationCounter + 1));
 			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
 				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
 
@@ -53,7 +55,7 @@ public class RealAda extends BinaryAda {
 			// { ct- if ht(xi) = -1
 			classifier.setWrongPreNormalization(calculateCMinus());
 			classifier.setRightPreNormalization(calculateCPlus());
-			sb.append("The weights\nc" + (iterationCounter + 1) + "+: " + classifier.getRightPreNormalization() + "\nc"
+			sb.append("\n\tThe weights\nc" + (iterationCounter + 1) + "+: " + classifier.getRightPreNormalization() + "\nc"
 				+ (iterationCounter + 1) + "-:" + classifier.getWrongPreNormalization());
 
 			calculatePreNormalizationProbabilities(classifier);// Calculate Pre-Normalization probabilities (pi)*(e
@@ -80,7 +82,7 @@ public class RealAda extends BinaryAda {
 																											// the bound
 																											// on error
 
-			classifiers.add(0, classifier);// Replace the classifier with new error
+			classifiers.set(0, classifier);// Replace the classifier with new error
 		}
 		return sb;
 	}
