@@ -15,7 +15,7 @@ public class BinaryAda {
 	protected ArrayList<ADAInput> inputs;
 
 	protected ArrayList<Classifier> classifiers;
-	protected String boostedClassifier;
+	protected ArrayList<Classifier> boostedClassifier;
 	protected double bound;
 
 	public ArrayList<ADAInput> getInputs() {
@@ -42,8 +42,17 @@ public class BinaryAda {
 		this.n = n;
 	}
 
+	public String getBoostedClassifier() {
+		String booster = "";
+		for (Classifier classifier : boostedClassifier) {
+			booster += classifier.getWeight() + " * I(x " + (classifier.isLeftPositive() ? "<" : ">") + " "
+				+ classifier.getClassifierValue() + ") + ";
+		}
+		return booster.substring(0, booster.length() - 3);
+	}
+
 	public BinaryAda() {
-		this.boostedClassifier = "";
+		this.boostedClassifier = new ArrayList<Classifier>();
 		this.bound = 1;
 		this.inputs = new ArrayList<ADAInput>();
 	}
@@ -53,7 +62,7 @@ public class BinaryAda {
 		for (int iterationCounter = 0; iterationCounter < T; iterationCounter++) {
 			setClassiferErrors();
 			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
-			sb.append("Iteration" + (iterationCounter + 1));
+			sb.append("\nIteration" + (iterationCounter + 1));
 			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
 				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
 
@@ -76,8 +85,7 @@ public class BinaryAda {
 			calculateNewProbabilities(classifier, sb);// 5. Calculate new probabilities (pi.qi)/Zt
 
 			calculateBoostedClassifier(classifier);// 6. Formulate the new boosted classifier ft
-			sb.append("\n\tThe boosted classifier: ft = "
-				+ boostedClassifier.substring(0, boostedClassifier.length() - 2));
+			sb.append("\n\tThe boosted classifier: ft = " + getBoostedClassifier());
 
 			// 7. The error of the boosted classifier Et
 			sb.append("\n\tThe error of the boosted classifier: " + calculateBoostedClassifierError());
@@ -98,20 +106,35 @@ public class BinaryAda {
 	 * @param classifier
 	 */
 	protected void setErroneous(Classifier classifier) {
-		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
-			ADAInput input = (ADAInput) iterator.next();
+		if (classifier.isLeftPositive()) {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
 
-			if (input.getExample() < classifier.getClassifierValue()) {
-				if (!input.isPositive()) {
-					input.setErroneous(true);
+				if (input.getExample() < classifier.getClassifierValue()) {
+					if (!input.isPositive()) {
+						input.setErroneous(true);
+					}
+				} else {
+					if (input.isPositive()) {
+						input.setErroneous(true);
+					}
 				}
-			} else {
-				if (input.isPositive()) {
-					input.setErroneous(true);
+			}
+		} else {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
+
+				if (input.getExample() < classifier.getClassifierValue()) {
+					if (input.isPositive()) {
+						input.setErroneous(true);
+					}
+				} else {
+					if (!input.isPositive()) {
+						input.setErroneous(true);
+					}
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -131,7 +154,9 @@ public class BinaryAda {
 	 */
 	protected double calculateBoostedClassifierError() {
 		double boostedClassifierError = 0;
-		for (ADAInput input : inputs) {
+		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+			ADAInput input = (ADAInput) iterator.next();
+
 			calculateBoostedWeight(input);
 			if (!xnor(input.getBoostedWeight() > 0, input.isPositive())) {
 				boostedClassifierError += 1;
@@ -141,14 +166,12 @@ public class BinaryAda {
 	}
 
 	private void calculateBoostedWeight(ADAInput input) {
-		String booster = boostedClassifier;
-		while (booster.contains("<")) {
-			double weight = Double.parseDouble(booster.substring(0, booster.indexOf("I")).trim());
-			double threshold = Double.parseDouble(booster.substring(booster.indexOf("<") + 1, booster.indexOf(")"))
-				.trim());
-			input.setBoostedWeight(input.getBoostedWeight() + (weight * classify(input, threshold)));
-
-			booster = booster.substring(booster.indexOf(")") + 4);
+		input.setBoostedWeight(0.0f);
+		for (Classifier classifier : boostedClassifier) {
+			double weight = classifier.getWeight();
+			double threshold = classifier.getClassifierValue();
+			input.setBoostedWeight(input.getBoostedWeight()
+				+ (weight * classify(input, threshold, classifier.isLeftPositive())));
 		}
 
 	}
@@ -162,10 +185,11 @@ public class BinaryAda {
 	 * 
 	 * @param input
 	 * @param threshold
+	 * @param leftPositive
 	 * @return
 	 */
-	private int classify(ADAInput input, double threshold) {
-		if (input.getExample() < threshold)
+	private int classify(ADAInput input, double threshold, boolean leftPositive) {
+		if ((leftPositive && (input.getExample() < threshold)) || (!leftPositive && (input.getExample() > threshold)))
 			return 1;
 		return -1;
 	}
@@ -176,7 +200,7 @@ public class BinaryAda {
 	 * @param classifier
 	 */
 	protected void calculateBoostedClassifier(Classifier classifier) {
-		boostedClassifier += classifier.getWeight() + " I(x < " + classifier.getClassifierValue() + ") + ";
+		;
 	}
 
 	/**
@@ -244,23 +268,40 @@ public class BinaryAda {
 	}
 
 	/**
-	 * Left is +ve And Right is -ve
+	 * Left is +ve And Right is -ve for odd classifiers
+	 * Right is +ve And Left is -ve for even classifiers
 	 * 
 	 * @param classifier
 	 * @return sum of probabilities of wrongly classified inputs
 	 */
 	private double calculateError(Classifier classifier) {
 		double error = 0.0f;
-		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
-			ADAInput input = (ADAInput) iterator.next();
+		if (classifier.isLeftPositive()) {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
 
-			if (input.getExample() < classifier.getClassifierValue()) {
-				if (!input.isPositive()) {
-					error += input.getProbability();
+				if (input.getExample() < classifier.getClassifierValue()) {
+					if (!input.isPositive()) {
+						error += input.getProbability();
+					}
+				} else {
+					if (input.isPositive()) {
+						error += input.getProbability();
+					}
 				}
-			} else {
-				if (input.isPositive()) {
-					error += input.getProbability();
+			}
+		} else {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
+
+				if (input.getExample() < classifier.getClassifierValue()) {
+					if (input.isPositive()) {
+						error += input.getProbability();
+					}
+				} else {
+					if (!input.isPositive()) {
+						error += input.getProbability();
+					}
 				}
 			}
 		}
@@ -293,17 +334,21 @@ public class BinaryAda {
 		classifiers = new ArrayList<Classifier>();
 		int elementCounter = 0;
 		int iterationCounter = 0;
-		classifiers.add(new Classifier(inputs.get(0).getExample() - 0.5f));
+		classifiers.add(new Classifier(inputs.get(0).getExample() - 0.5f, true));
+		classifiers.add(new Classifier(inputs.get(0).getExample() - 0.5f, false));
 		while (iterationCounter < inputs.size() - 1) {
 			if (elementCounter < inputs.size() && (elementCounter + 1) < inputs.size()) {
 				classifiers.add(new Classifier((inputs.get(elementCounter).getExample() + inputs
-					.get(elementCounter + 1).getExample()) / 2));
+					.get(elementCounter + 1).getExample()) / 2, true));
+				classifiers.add(new Classifier((inputs.get(elementCounter).getExample() + inputs
+					.get(elementCounter + 1).getExample()) / 2, false));
 				iterationCounter++;
 			}
 
 			elementCounter = (elementCounter + 1) % n;
 		}
-		classifiers.add(new Classifier(inputs.get(inputs.size() - 1).getExample() + 0.5f));
+		classifiers.add(new Classifier(inputs.get(inputs.size() - 1).getExample() + 0.5f, true));
+		classifiers.add(new Classifier(inputs.get(inputs.size() - 1).getExample() + 0.5f, false));
 	}
 
 	public BinaryAda(int t, int n, ArrayList<ADAInput> inputs) {
@@ -314,7 +359,7 @@ public class BinaryAda {
 		for (ADAInput adaInput : inputs) {
 			this.inputs.add(adaInput);
 		}
-		boostedClassifier = "";
+		boostedClassifier = new ArrayList<Classifier>();
 		bound = 1;
 		setClassifiers();
 	}

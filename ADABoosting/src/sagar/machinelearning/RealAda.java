@@ -55,8 +55,8 @@ public class RealAda extends BinaryAda {
 			// { ct- if ht(xi) = -1
 			classifier.setWrongPreNormalization(calculateCMinus());
 			classifier.setRightPreNormalization(calculateCPlus());
-			sb.append("\n\tThe weights\nc" + (iterationCounter + 1) + "+: " + classifier.getRightPreNormalization() + "\nc"
-				+ (iterationCounter + 1) + "-:" + classifier.getWrongPreNormalization());
+			sb.append("\n\tThe weights\n\t\tc" + (iterationCounter + 1) + "+: " + classifier.getRightPreNormalization()
+				+ "\n\t\tc" + (iterationCounter + 1) + "-: " + classifier.getWrongPreNormalization());
 
 			calculatePreNormalizationProbabilities(classifier);// Calculate Pre-Normalization probabilities (pi)*(e
 																// raised to (-yi * gt(xi)))

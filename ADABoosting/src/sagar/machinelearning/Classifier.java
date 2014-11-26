@@ -14,14 +14,16 @@ public class Classifier {
 	private double classifierValue;
 	private double error;
 	private double weight;
+	private boolean leftPositive;
 
 	private double wrongPreNormalization;
 	private double rightPreNormalization;
 	private double normalizationFactor;
 
-	public Classifier(double classifierValue) {
+	public Classifier(double classifierValue, boolean leftPositive) {
 		super();
 		this.classifierValue = classifierValue;
+		this.setLeftPositive(leftPositive);
 	}
 
 	public Classifier() {
@@ -49,6 +51,14 @@ public class Classifier {
 
 	public void setWeight(double weight) {
 		this.weight = weight;
+	}
+
+	public boolean isLeftPositive() {
+		return leftPositive;
+	}
+
+	public void setLeftPositive(boolean leftPositive) {
+		this.leftPositive = leftPositive;
 	}
 
 	public double getWrongPreNormalization() {
