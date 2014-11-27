@@ -39,6 +39,7 @@ public class RealAda extends BinaryAda {
 			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
 				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
 
+			initializeInputErrors();
 			setErroneous(classifier);
 			setClassifierCounts(classifier);
 			sb.append("\n\tThe G error value of of h" + (iterationCounter + 1) + ": " + classifier.getError());// 2.

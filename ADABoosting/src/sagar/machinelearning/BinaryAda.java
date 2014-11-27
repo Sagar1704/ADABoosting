@@ -63,9 +63,12 @@ public class BinaryAda {
 			setClassiferErrors();
 			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
 			sb.append("\nIteration" + (iterationCounter + 1));
-			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
-				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
+			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e "
+				+ (classifier.isLeftPositive() ? "<" : ">") + " " + classifier.getClassifierValue()
+				+ "\n\t     {\t-1\tif e " + (classifier.isLeftPositive() ? ">" : "<") + " "
+				+ classifier.getClassifierValue());
 
+			initializeInputErrors();
 			setErroneous(classifier);// 2. Find errors in the classifier (epsilon)t
 			sb.append("\n\tThe error of h" + (iterationCounter + 1) + ": " + classifier.getError());
 
@@ -98,6 +101,13 @@ public class BinaryAda {
 		}
 
 		return sb;
+	}
+
+	protected void initializeInputErrors() {
+		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+			ADAInput input = (ADAInput) iterator.next();
+			input.setErroneous(false);
+		}
 	}
 
 	/**
@@ -200,7 +210,7 @@ public class BinaryAda {
 	 * @param classifier
 	 */
 	protected void calculateBoostedClassifier(Classifier classifier) {
-		;
+		boostedClassifier.add(classifier);
 	}
 
 	/**
