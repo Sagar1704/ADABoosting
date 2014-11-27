@@ -167,7 +167,7 @@ public class BinaryAda {
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 
-			calculateBoostedWeight(input);
+			this.calculateBoostedWeight(input);
 			if (!xnor(input.getBoostedWeight() > 0, input.isPositive())) {
 				boostedClassifierError += 1;
 			}
@@ -175,7 +175,7 @@ public class BinaryAda {
 		return boostedClassifierError / n;
 	}
 
-	private void calculateBoostedWeight(ADAInput input) {
+	public void calculateBoostedWeight(ADAInput input) {
 		input.setBoostedWeight(0.0f);
 		for (Classifier classifier : boostedClassifier) {
 			double weight = classifier.getWeight();
@@ -183,10 +183,9 @@ public class BinaryAda {
 			input.setBoostedWeight(input.getBoostedWeight()
 				+ (weight * classify(input, threshold, classifier.isLeftPositive())));
 		}
-
 	}
 
-	private boolean xnor(boolean b, boolean inputValue) {
+	protected boolean xnor(boolean b, boolean inputValue) {
 		return b == inputValue;
 	}
 

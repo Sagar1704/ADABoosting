@@ -11,10 +11,10 @@ import java.util.Iterator;
 public class RealAda extends BinaryAda {
 	private double epsilon;
 
-	private int prPlus = 0;
-	private int pwMinus = 0;
-	private int prMinus = 0;
-	private int pwPlus = 0;
+	private double prPlus = 0.0f;
+	private double pwMinus = 0.0f;
+	private double prMinus = 0.0f;
+	private double pwPlus = 0.0f;
 
 	public double getEpsilon() {
 		return epsilon;
@@ -36,8 +36,10 @@ public class RealAda extends BinaryAda {
 
 			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
 			sb.append("\nIteration" + (iterationCounter + 1));
-			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e < "
-				+ classifier.getClassifierValue() + "\n\t     {\t-1\tif e > " + classifier.getClassifierValue());
+			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e "
+				+ (classifier.isLeftPositive() ? "<" : ">") + " " + classifier.getClassifierValue()
+				+ "\n\t     {\t-1\tif e " + (classifier.isLeftPositive() ? ">" : "<") + " "
+				+ classifier.getClassifierValue());
 
 			initializeInputErrors();
 			setErroneous(classifier);
@@ -88,21 +90,52 @@ public class RealAda extends BinaryAda {
 		return sb;
 	}
 
+	@Override
+	public void calculateBoostedWeight(ADAInput input) {
+		input.setBoostedWeight(0.0f);
+		for (Classifier classifier : boostedClassifier) {
+			if (classifier.isLeftPositive()) {
+				if (input.getExample() < classifier.getClassifierValue())
+					input.setBoostedWeight(input.getBoostedWeight() + classifier.getRightPreNormalization());
+				else
+					input.setBoostedWeight(input.getBoostedWeight() + classifier.getWrongPreNormalization());
+			} else {
+				if (input.getExample() > classifier.getClassifierValue())
+					input.setBoostedWeight(input.getBoostedWeight() + classifier.getRightPreNormalization());
+				else
+					input.setBoostedWeight(input.getBoostedWeight() + classifier.getWrongPreNormalization());
+			}
+		}
+	}
+
 	/**
 	 * Calculate pi.qi
 	 * 
 	 * @param classifier
 	 */
 	private void calculatePreNormalizationProbabilities(Classifier classifier) {
-		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
-			ADAInput input = (ADAInput) iterator.next();
+		if (classifier.isLeftPositive()) {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
 
-			if (input.getExample() < classifier.getClassifierValue())
-				input.setPreNormalizedProbability(input.getProbability()
-					* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getRightPreNormalization()));
-			else
-				input.setPreNormalizedProbability(input.getProbability()
-					* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getWrongPreNormalization()));
+				if (input.getExample() < classifier.getClassifierValue())
+					input.setPreNormalizedProbability(input.getProbability()
+						* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getRightPreNormalization()));
+				else
+					input.setPreNormalizedProbability(input.getProbability()
+						* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getWrongPreNormalization()));
+			}
+		} else {
+			for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
+				ADAInput input = (ADAInput) iterator.next();
+
+				if (input.getExample() > classifier.getClassifierValue())
+					input.setPreNormalizedProbability(input.getProbability()
+						* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getRightPreNormalization()));
+				else
+					input.setPreNormalizedProbability(input.getProbability()
+						* Math.pow(Math.E, -1 * (input.isPositive() ? 1 : -1) * classifier.getWrongPreNormalization()));
+			}
 		}
 	}
 
@@ -132,21 +165,21 @@ public class RealAda extends BinaryAda {
 	 * @param classifier
 	 */
 	private void setClassifierCounts(Classifier classifier) {
-		prPlus = 0;
-		pwMinus = 0;
-		prMinus = 0;
-		pwPlus = 0;
+		prPlus = 0.0f;
+		pwMinus = 0.0f;
+		prMinus = 0.0f;
+		pwPlus = 0.0f;
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 
 			if (input.getExample() < classifier.getClassifierValue() && input.isPositive()) {
-				prPlus++;
+				prPlus += input.getProbability();
 			} else if (input.getExample() < classifier.getClassifierValue() && (!input.isPositive())) {
-				pwMinus++;
+				pwMinus += input.getProbability();
 			} else if (input.getExample() > classifier.getClassifierValue() && (!input.isPositive())) {
-				prMinus++;
+				prMinus += input.getProbability();
 			} else if (input.getExample() > classifier.getClassifierValue() && input.isPositive()) {
-				pwPlus++;
+				pwPlus += input.getProbability();
 			}
 		}
 	}
@@ -173,21 +206,21 @@ public class RealAda extends BinaryAda {
 	 * @return G = Sqrt(Pr+ * Pw-) + Sqrt(Pw+ * Pr-)
 	 */
 	private double calculateError(Classifier classifier) {
-		int prPlus = 0;
-		int prMinus = 0;
-		int pwPlus = 0;
-		int pwMinus = 0;
+		double prPlus = 0.0f;
+		double prMinus = 0.0f;
+		double pwPlus = 0.0f;
+		double pwMinus = 0.0f;
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 
 			if (input.getExample() < classifier.getClassifierValue() && input.isPositive()) {
-				prPlus++;
+				prPlus += input.getProbability();
 			} else if (input.getExample() < classifier.getClassifierValue() && (!input.isPositive())) {
-				pwMinus++;
+				pwMinus += input.getProbability();
 			} else if (input.getExample() > classifier.getClassifierValue() && (!input.isPositive())) {
-				prMinus++;
+				prMinus += input.getProbability();
 			} else if (input.getExample() > classifier.getClassifierValue() && input.isPositive()) {
-				pwPlus++;
+				pwPlus += input.getProbability();
 			}
 		}
 
