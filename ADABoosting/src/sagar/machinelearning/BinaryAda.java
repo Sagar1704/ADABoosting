@@ -209,7 +209,8 @@ public class BinaryAda {
 	 * @param classifier
 	 */
 	protected void calculateBoostedClassifier(Classifier classifier) {
-		boostedClassifier.add(classifier);
+		Classifier boosted = new Classifier(classifier); 
+		boostedClassifier.add(boosted);
 	}
 
 	/**

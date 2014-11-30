@@ -20,6 +20,16 @@ public class Classifier {
 	private double rightPreNormalization;
 	private double normalizationFactor;
 
+	public Classifier(Classifier classifier) {
+		this.classifierValue = classifier.getClassifierValue();
+		this.error = classifier.getError();
+		this.weight = classifier.getWeight();
+		this.leftPositive = classifier.isLeftPositive();
+		this.wrongPreNormalization = classifier.getWrongPreNormalization();
+		this.rightPreNormalization = classifier.getRightPreNormalization();
+		this.normalizationFactor = classifier.getNormalizationFactor();
+	}
+	
 	public Classifier(double classifierValue, boolean leftPositive) {
 		super();
 		this.classifierValue = classifierValue;

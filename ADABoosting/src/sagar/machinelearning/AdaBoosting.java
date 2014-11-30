@@ -51,9 +51,15 @@ public class AdaBoosting {
 				ada.readFile();
 				break;
 			case 2:
+				System.out.println("#***************************************");
+				System.out.println("#Binary ADA Boosting");
+				System.out.println("#***************************************");
 				System.out.println(ada.binaryAda.boost().toString());
 				break;
 			case 3:
+				System.out.println("#***************************************");
+				System.out.println("#Real ADA Boosting");
+				System.out.println("#***************************************");
 				System.out.println(ada.realAda.boost().toString());
 				break;
 			case 4:
