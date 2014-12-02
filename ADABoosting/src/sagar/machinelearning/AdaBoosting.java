@@ -2,6 +2,7 @@ package sagar.machinelearning;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -19,6 +20,8 @@ public class AdaBoosting {
 	private BinaryAda binaryAda;
 	private RealAda realAda;
 	private static boolean fileScanned = false;
+	private static final String NETID = "ssd140830";
+	private static final String FILEPATH = "C:\\Study\\UTD\\Fall14\\Machine learning\\Assignments\\Graded Homework 2\\Demo\\ssd140830\\";
 
 	public AdaBoosting() {
 		this.inputFilePath = "";
@@ -37,7 +40,13 @@ public class AdaBoosting {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Deshpande Sagar");
+		StringBuilder binarySB = new StringBuilder();
+		StringBuilder realSB = new StringBuilder();
+
+		binarySB.append("Deshpande, Sagar");
+		realSB.append("Deshpande, Sagar");
+
+		System.out.println("Deshpande, Sagar");
 		System.out.println("#***************************************");
 		System.out.println("#\tAda Boosting");
 
@@ -54,13 +63,37 @@ public class AdaBoosting {
 				System.out.println("#***************************************");
 				System.out.println("#Binary ADA Boosting");
 				System.out.println("#***************************************");
-				System.out.println(ada.binaryAda.boost().toString());
+				binarySB.append(ada.binaryAda.boost());
+				System.out.println(binarySB.toString());
+				PrintWriter writer = null;
+				try {
+					writer = new PrintWriter(new File(FILEPATH + NETID + "_" + "binary" + "_"
+						+ ada.inputFilePath.split("-")[1].substring(0, 1) + ".txt"));
+					writer.print(binarySB.toString());
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} finally {
+					if (writer != null)
+						writer.close();
+				}
 				break;
 			case 3:
 				System.out.println("#***************************************");
 				System.out.println("#Real ADA Boosting");
 				System.out.println("#***************************************");
-				System.out.println(ada.realAda.boost().toString());
+				realSB.append(ada.realAda.boost());
+				System.out.println(realSB.toString());
+				writer = null;
+				try {
+					writer = new PrintWriter(new File(FILEPATH + NETID + "_" + "real" + "_"
+						+ ada.inputFilePath.split("-")[1].substring(0, 1) + ".txt"));
+					writer.print(realSB.toString());
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} finally {
+					if (writer != null)
+						writer.close();
+				}
 				break;
 			case 4:
 				System.exit(0);

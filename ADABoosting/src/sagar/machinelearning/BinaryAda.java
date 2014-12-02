@@ -62,19 +62,24 @@ public class BinaryAda {
 		for (int iterationCounter = 0; iterationCounter < T; iterationCounter++) {
 			setClassiferErrors();
 			Classifier classifier = classifiers.get(0);// 1. Select a weak classifier ht
-			sb.append("\nIteration" + (iterationCounter + 1));
-			sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e "
-				+ (classifier.isLeftPositive() ? "<" : ">") + " " + classifier.getClassifierValue()
-				+ "\n\t     {\t-1\tif e " + (classifier.isLeftPositive() ? ">" : "<") + " "
-				+ classifier.getClassifierValue());
+			sb.append("\n\nIteration " + (iterationCounter + 1));
+			/*
+			 * sb.append("\nThe selected weak classifier:\n\th" + (iterationCounter + 1) + " = {\t1\tif e "
+			 * + (classifier.isLeftPositive() ? "<" : ">") + " " + classifier.getClassifierValue()
+			 * + "\n\t     {\t-1\tif e " + (classifier.isLeftPositive() ? ">" : "<") + " "
+			 * + classifier.getClassifierValue());
+			 */
+			sb.append("\nClassifier h = I(x " + (classifier.isLeftPositive() ? "<" : ">") + " "
+				+ classifier.getClassifierValue() + ")");
 
 			initializeInputErrors();
 			setErroneous(classifier);// 2. Find errors in the classifier (epsilon)t
-			sb.append("\n\tThe error of h" + (iterationCounter + 1) + ": " + classifier.getError());
-
+			// sb.append("\n\tThe error of h" + (iterationCounter + 1) + ": " + classifier.getError());
+			sb.append("\nError = " + classifier.getError());
 			classifier.setWeight(calculateWeight(classifier.getError()));// 3. Calculate goodness weight at
-			sb.append("\n\tThe weight of h" + (iterationCounter + 1) + ": " + classifier.getWeight());
-
+//			sb.append("\n\tThe weight of h" + (iterationCounter + 1) + ": " + classifier.getWeight());
+			sb.append("\nAlpha = " + classifier.getWeight());
+			
 			// Calculate Pre-Normalization factors qi(Wrong) and qi(Right)
 			classifier.setWrongPreNormalization(calculatePreNormalizationFactor(classifier.getWeight()));
 			classifier.setRightPreNormalization(calculatePreNormalizationFactor(-1 * classifier.getWeight()));
@@ -82,17 +87,17 @@ public class BinaryAda {
 			calculatePreNormalizationProbabilities(classifier);// Calculate Pre-Normalization probabilities pi.qi
 
 			classifier.setNormalizationFactor(calculateNormalizationFactor());// 4. Calculate Normalization factor Zt
-			sb.append("\n\tThe probabilities normalization factor: " + classifier.getNormalizationFactor());
+			sb.append("\nNormalization Factor Z = " + classifier.getNormalizationFactor());
 
-			sb.append("\n\tThe probabilities after normalization: ");
+			sb.append("\nPi after normalization =");
 			calculateNewProbabilities(classifier, sb);// 5. Calculate new probabilities (pi.qi)/Zt
 
 			calculateBoostedClassifier(classifier);// 6. Formulate the new boosted classifier ft
-			sb.append("\n\tThe boosted classifier: ft = " + getBoostedClassifier());
+			sb.append("\nBoosted Classifier f(x) = " + getBoostedClassifier());
 
 			// 7. The error of the boosted classifier Et
-			sb.append("\n\tThe error of the boosted classifier: " + calculateBoostedClassifierError());
-			sb.append("\n\tThe bound on E" + (iterationCounter + 1) + ": " + calculateBound(classifier));// 8. Calculate
+			sb.append("\nBoosted Classifier Error = " + calculateBoostedClassifierError());
+			sb.append("\nBound on Error = " + calculateBound(classifier));// 8. Calculate
 																											// the bound
 																											// on error
 
@@ -209,7 +214,7 @@ public class BinaryAda {
 	 * @param classifier
 	 */
 	protected void calculateBoostedClassifier(Classifier classifier) {
-		Classifier boosted = new Classifier(classifier); 
+		Classifier boosted = new Classifier(classifier);
 		boostedClassifier.add(boosted);
 	}
 
@@ -223,8 +228,9 @@ public class BinaryAda {
 		for (Iterator<ADAInput> iterator = inputs.iterator(); iterator.hasNext();) {
 			ADAInput input = (ADAInput) iterator.next();
 			input.setProbability(input.getPreNormalizedProbability() / classifier.getNormalizationFactor());
-			sb.append("\t" + input.getProbability());
+			sb.append(" " + input.getProbability() + ",");
 		}
+		sb.delete(sb.length() - 1, sb.length());
 	}
 
 	/**
